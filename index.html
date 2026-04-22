@@ -4,20 +4,23 @@
   <base target="_top">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&family=Quicksand:wght@700&display=swap');
+
     :root {
       --bg-color: #f8f9fe;
       --primary-purple: #9d85e1;
       --accent-blue: #a2d2ff;
+      --accent-red: #ffb7b2;
       --text-main: #6e6b7b;
     }
+
     body {
       background-color: var(--bg-color);
-      font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+      font-family: 'Noto Sans TC', 'Segoe UI', sans-serif;
       margin: 0; padding: 20px;
       display: flex; flex-direction: column; align-items: center;
     }
 
-    /* 右上角設定齒輪 */
     .settings-btn {
       position: fixed; top: 15px; right: 15px;
       font-size: 20px; color: #ccc; cursor: pointer;
@@ -34,20 +37,77 @@
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .header-badge { background: var(--primary-purple); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; display: inline-block; }
-    h1 { color: var(--primary-purple); text-align: center; margin: 0 0 15px 0; font-size: 24pt; }
+    /* 標題框優化 */
+    .title-badge-container {
+      background: var(--primary-purple);
+      padding: 12px 25px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(157, 133, 225, 0.3);
+    }
+    h1 { 
+      color: white; 
+      text-align: center; 
+      margin: 0; 
+      font-size: 26pt; 
+      font-family: 'Quicksand', 'Noto Sans TC', sans-serif;
+      letter-spacing: 1px;
+    }
 
-    .dm-container { cursor: zoom-in; margin-bottom: 20px; }
-    .dm-image { width: 100%; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    /* 圖片尺寸縮小 */
+    .dm-container { cursor: zoom-in; margin: 0 auto 20px auto; width: 85%; }
+    .dm-image { width: 100%; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
     .note-box { background: #f0ecfb; padding: 15px; border-radius: 15px; border-left: 5px solid var(--primary-purple); font-size: 14px; margin-bottom: 25px; }
 
-    .order-row { display: flex; gap: 10px; margin-bottom: 10px; }
-    input { flex: 1; padding: 12px; border: 1px solid #eee; border-radius: 12px; outline: none; }
-    input:focus { border-color: var(--primary-purple); }
+    /* 表單列與按鈕設計 */
+    .order-row { 
+      display: flex; 
+      gap: 8px; 
+      margin-bottom: 12px; 
+      align-items: center; 
+    }
+    
+    input { 
+      flex: 1; 
+      padding: 12px; 
+      border: 1px solid #eee; 
+      border-radius: 12px; 
+      outline: none; 
+      font-size: 14px;
+    }
+    input:focus { border-color: var(--primary-purple); background: #fafaff; }
 
-    .btn-add { background: var(--accent-blue); border: none; width: 40px; height: 40px; border-radius: 12px; color: white; cursor: pointer; display: block; margin: 10px auto; }
-    .btn-submit { background: var(--primary-purple); color: white; border: none; padding: 15px; width: 100%; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+    .btn-action {
+      border: none;
+      width: 35px;
+      height: 35px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+    .btn-add-row { background: var(--accent-blue); }
+    .btn-del-row { background: var(--accent-red); }
+    .btn-action:hover { opacity: 0.8; transform: scale(1.05); }
+
+    .btn-submit { 
+      background: var(--primary-purple); 
+      color: white; 
+      border: none; 
+      padding: 18px; 
+      width: 100%; 
+      border-radius: 20px; 
+      font-size: 18px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      margin-top: 20px;
+      box-shadow: 0 8px 20px rgba(157, 133, 225, 0.3);
+    }
 
     /* Lightbox */
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; cursor: zoom-out; }
@@ -62,8 +122,9 @@
 
 <div class="container" id="main-content">
   <div style="text-align: center;">
-    <div class="header-badge">GROUP PURCHASE 2026</div>
-    <h1 id="main-title">載入中...</h1>
+    <div class="title-badge-container">
+      <h1 id="main-title">Loading</h1>
+    </div>
   </div>
   
   <div class="dm-container" onclick="openLightbox()">
@@ -76,7 +137,6 @@
   </div>
 
   <div id="order-list"></div>
-  <button class="btn-add" onclick="addRow()"><i class="fa-solid fa-plus"></i></button>
   <button class="btn-submit" onclick="submitData()">確認送出</button>
 </div>
 
@@ -112,7 +172,7 @@
         document.getElementById('main-content').style.display = 'block';
         renderPage(data);
       })
-      .catch(err => alert("讀取失敗，請檢查網址是否正確且已部署為『所有人』存取。"));
+      .catch(err => alert("讀取失敗，請確認 API 網址設定"));
   }
 
   function renderPage(data) {
@@ -120,16 +180,40 @@
     document.getElementById('main-note').innerText = data.note;
     document.getElementById('dm-img').src = data.imgUrl;
     document.getElementById('full-img').src = data.imgUrl;
+    
     const list = document.getElementById('order-list');
-    data.orders.forEach(order => addRow(order[0], order[1]));
+    if (data.orders && data.orders.length > 0) {
+      data.orders.forEach(order => addRow(order[0], order[1]));
+    }
+    
+    // 預設補滿 5 行
     while (list.getElementsByClassName('order-row').length < 5) addRow();
   }
 
   function addRow(name = '', item = '') {
+    const list = document.getElementById('order-list');
     const div = document.createElement('div');
     div.className = 'order-row';
-    div.innerHTML = `<input type="text" class="name-input" placeholder="姓名" value="${name}"><input type="text" class="item-input" placeholder="品名" value="${item}">`;
-    document.getElementById('order-list').appendChild(div);
+    div.innerHTML = `
+      <button class="btn-action btn-add-row" onclick="addRow()"><i class="fa-solid fa-plus"></i></button>
+      <input type="text" class="name-input" placeholder="姓名" value="${name}">
+      <input type="text" class="item-input" placeholder="品名" value="${item}">
+      <button class="btn-action btn-del-row" onclick="removeRow(this)"><i class="fa-solid fa-minus"></i></button>
+    `;
+    list.appendChild(div);
+  }
+
+  function removeRow(btn) {
+    const row = btn.parentNode;
+    const name = row.querySelector('.name-input').value;
+    const item = row.querySelector('.item-input').value;
+    
+    // 如果是空欄位直接刪除，如果有內容則跳出確認
+    if (!name && !item) {
+      row.remove();
+    } else {
+      if (confirm("確定要刪除這筆資料嗎？")) row.remove();
+    }
   }
 
   function submitData() {
