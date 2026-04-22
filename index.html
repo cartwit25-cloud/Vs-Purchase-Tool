@@ -5,171 +5,145 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #fff9f0;
-      --primary-color: #ffb7b2; /* 嫩粉紅 */
-      --secondary-color: #b2e2f2; /* 天藍 */
-      --accent-color: #fff1a8; /* 奶油黃 */
-      --text-color: #5d5d5d;
+      --bg-color: #f8f9fe;
+      --primary-purple: #9d85e1;
+      --accent-blue: #a2d2ff;
+      --text-main: #6e6b7b;
     }
     body {
       background-color: var(--bg-color);
-      font-family: 'Microsoft JhengHei', sans-serif;
-      color: var(--text-color);
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+      margin: 0; padding: 20px;
+      display: flex; flex-direction: column; align-items: center;
     }
+
+    /* 右上角設定齒輪 */
+    .settings-btn {
+      position: fixed; top: 15px; right: 15px;
+      font-size: 20px; color: #ccc; cursor: pointer;
+      transition: 0.3s; z-index: 100;
+    }
+    .settings-btn:hover { color: var(--primary-purple); transform: rotate(90deg); }
+
+    .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; color: var(--primary-purple); font-weight: bold; }
+
     .container {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      padding: 20px;
-      border-radius: 25px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      border: 4px solid var(--accent-color);
+      width: 100%; max-width: 600px; background: white; padding: 30px;
+      border-radius: 30px; box-shadow: 0 10px 40px rgba(157, 133, 225, 0.1);
+      display: none; animation: fadeIn 0.5s ease;
     }
-    h1 {
-      color: #ff8b94;
-      text-align: center;
-      margin-bottom: 10px;
-      font-size: 24pt;
-    }
-    .dm-image {
-      width: 100%;
-      border-radius: 15px;
-      margin: 15px 0;
-      box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
-      display: block;
-    }
-    .note-box {
-      background: var(--secondary-color);
-      padding: 12px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      font-size: 11pt;
-      line-height: 1.5;
-    }
-    .order-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    input {
-      flex: 1;
-      padding: 10px;
-      border: 2px solid #eee;
-      border-radius: 10px;
-      outline: none;
-      transition: 0.3s;
-    }
-    input:focus { border-color: var(--primary-color); }
-    .btn-add {
-      background: #b2f2bb;
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 20px;
-      color: #2b5e35;
-      margin-top: 10px;
-    }
-    .btn-submit {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 15px;
-      width: 100%;
-      border-radius: 15px;
-      font-size: 18px;
-      font-weight: bold;
-      margin-top: 20px;
-      cursor: pointer;
-      box-shadow: 0 5px 0 #ff9aa2;
-    }
-    .btn-submit:active { transform: translateY(3px); box-shadow: none; }
-    .loading { text-align: center; font-size: 18px; color: #aaa; margin-top: 50px; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .header-badge { background: var(--primary-purple); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; display: inline-block; }
+    h1 { color: var(--primary-purple); text-align: center; margin: 0 0 15px 0; font-size: 24pt; }
+
+    .dm-container { cursor: zoom-in; margin-bottom: 20px; }
+    .dm-image { width: 100%; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+    .note-box { background: #f0ecfb; padding: 15px; border-radius: 15px; border-left: 5px solid var(--primary-purple); font-size: 14px; margin-bottom: 25px; }
+
+    .order-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    input { flex: 1; padding: 12px; border: 1px solid #eee; border-radius: 12px; outline: none; }
+    input:focus { border-color: var(--primary-purple); }
+
+    .btn-add { background: var(--accent-blue); border: none; width: 40px; height: 40px; border-radius: 12px; color: white; cursor: pointer; display: block; margin: 10px auto; }
+    .btn-submit { background: var(--primary-purple); color: white; border: none; padding: 15px; width: 100%; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+
+    /* Lightbox */
+    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; cursor: zoom-out; }
+    #overlay img { max-width: 95%; max-height: 95%; }
+    #close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; }
   </style>
 </head>
 <body>
 
-<div id="loading" class="loading">正在載入繽紛表單...</div>
+<div class="settings-btn" onclick="setApiUrl()"><i class="fa-solid fa-gear"></i></div>
+<div id="loading" class="loading">Loading..</div>
 
-<div class="container" id="main-content" style="display:none;">
-  <h1 id="main-title">載入中...</h1>
+<div class="container" id="main-content">
+  <div style="text-align: center;">
+    <div class="header-badge">GROUP PURCHASE 2026</div>
+    <h1 id="main-title">載入中...</h1>
+  </div>
   
-  <img id="dm-img" class="dm-image" src="" alt="團購DM">
+  <div class="dm-container" onclick="openLightbox()">
+    <img id="dm-img" class="dm-image" src="" alt="DM">
+  </div>
   
   <div class="note-box">
-    <i class="fa-solid fa-bell"></i> <strong>注意事項：</strong><br>
+    <strong><i class="fa-solid fa-circle-info"></i> 注意事項：</strong><br>
     <span id="main-note">載入中...</span>
   </div>
 
-  <div id="order-list">
-    </div>
-
+  <div id="order-list"></div>
   <button class="btn-add" onclick="addRow()"><i class="fa-solid fa-plus"></i></button>
-  <button class="btn-submit" onclick="submitData()">送出訂單</button>
+  <button class="btn-submit" onclick="submitData()">確認送出</button>
+</div>
+
+<div id="overlay" onclick="closeLightbox()">
+  <span id="close-btn">&times;</span>
+  <img id="full-img" src="">
 </div>
 
 <script>
-  // 初始化載入
+  let GAS_URL = localStorage.getItem('gas_api_url');
+
   window.onload = function() {
-    google.script.run.withSuccessHandler(showData).getData();
+    if (!GAS_URL) {
+      document.getElementById('loading').innerHTML = "請點擊右上角齒輪 <br> 設定您的 API 網址";
+      return;
+    }
+    fetchData();
   };
 
-  function showData(data) {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('main-content').style.display = 'block';
-    
+  function setApiUrl() {
+    const newUrl = prompt("請貼入您的 Google Script Web App 網址：", GAS_URL || "");
+    if (newUrl) {
+      localStorage.setItem('gas_api_url', newUrl);
+      location.reload();
+    }
+  }
+
+  function fetchData() {
+    fetch(GAS_URL)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        renderPage(data);
+      })
+      .catch(err => alert("讀取失敗，請檢查網址是否正確且已部署為『所有人』存取。"));
+  }
+
+  function renderPage(data) {
     document.getElementById('main-title').innerText = data.title;
     document.getElementById('main-note').innerText = data.note;
     document.getElementById('dm-img').src = data.imgUrl;
-
+    document.getElementById('full-img').src = data.imgUrl;
     const list = document.getElementById('order-list');
-    const existingOrders = data.orders;
-
-    // 先填入現有資料
-    existingOrders.forEach(order => {
-      addRow(order[0], order[1]);
-    });
-
-    // 補足至少 5 行
-    const currentRows = list.getElementsByClassName('order-row').length;
-    for (let i = currentRows; i < 5; i++) {
-      addRow();
-    }
+    data.orders.forEach(order => addRow(order[0], order[1]));
+    while (list.getElementsByClassName('order-row').length < 5) addRow();
   }
 
   function addRow(name = '', item = '') {
     const div = document.createElement('div');
     div.className = 'order-row';
-    div.innerHTML = `
-      <input type="text" class="name-input" placeholder="姓名" value="${name}">
-      <input type="text" class="item-input" placeholder="品名" value="${item}">
-    `;
+    div.innerHTML = `<input type="text" class="name-input" placeholder="姓名" value="${name}"><input type="text" class="item-input" placeholder="品名" value="${item}">`;
     document.getElementById('order-list').appendChild(div);
   }
 
   function submitData() {
-    const rows = document.getElementsByClassName('order-row');
-    const dataToSave = [];
-    
-    for (let row of rows) {
-      const name = row.querySelector('.name-input').value.trim();
-      const item = row.querySelector('.item-input').value.trim();
-      if (name || item) {
-        dataToSave.push([name, item]);
-      }
-    }
+    const dataToSave = Array.from(document.getElementsByClassName('order-row'))
+      .map(row => [row.querySelector('.name-input').value.trim(), row.querySelector('.item-input').value.trim()])
+      .filter(r => r[0] || r[1]);
 
-    google.script.run.withSuccessHandler(res => {
-      alert(res);
-      location.reload(); // 重新載入以顯示更新後的結果
-    }).saveAllOrders(dataToSave);
+    fetch(GAS_URL, { method: "POST", body: JSON.stringify({ data: dataToSave }) })
+      .then(() => { alert("填寫完成"); location.reload(); })
+      .catch(() => alert("儲存失敗"));
   }
+
+  function openLightbox() { document.getElementById('overlay').style.display = 'flex'; }
+  function closeLightbox() { document.getElementById('overlay').style.display = 'none'; }
 </script>
 </body>
 </html>
