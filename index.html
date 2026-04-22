@@ -4,7 +4,7 @@
   <base target="_top">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&family=Quicksand:wght@700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Quicksand:wght@700&display=swap');
 
     :root {
       --bg-color: #f8f9fe;
@@ -12,6 +12,8 @@
       --accent-blue: #a2d2ff;
       --accent-red: #ffb7b2;
       --text-main: #6e6b7b;
+      --btn-overlay-blue: rgba(162, 210, 255, 0.15); /* 更淡的藍色疊加 */
+      --btn-overlay-red: rgba(255, 183, 178, 0.15); /* 更淡的紅色疊加 */
     }
 
     body {
@@ -59,41 +61,76 @@
     .dm-container { cursor: zoom-in; margin: 0 auto 20px auto; width: 85%; }
     .dm-image { width: 100%; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
-    .note-box { background: #f0ecfb; padding: 15px; border-radius: 15px; border-left: 5px solid var(--primary-purple); font-size: 14px; margin-bottom: 25px; }
+    .note-box { background: #f0ecfb; padding: 15px; border-radius: 15px; border-left: 5px solid var(--primary-purple); font-size: 14px; margin-bottom: 25px; text-align: left; }
+    .note-box strong { font-weight: 700; color: #4b4b4b; }
 
-    /* 表單列與按鈕設計 */
+    /* 表單列與按鈕設計 (復刻圖片版) */
     .order-row { 
       display: flex; 
-      gap: 8px; 
+      gap: 15px; 
       margin-bottom: 12px; 
       align-items: center; 
     }
     
+    .input-wrapper {
+      position: relative;
+      flex: 1;
+    }
+
     input { 
-      flex: 1; 
-      padding: 12px; 
+      width: 100%;
+      padding: 12px 15px; 
       border: 1px solid #eee; 
       border-radius: 12px; 
       outline: none; 
       font-size: 14px;
+      box-sizing: border-box; /* 極重要：確保 padding 不會撐破容器 */
     }
     input:focus { border-color: var(--primary-purple); background: #fafaff; }
 
-    .btn-action {
+    /* 內部按鈕樣式 */
+    .btn-action-overlay {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
       border: none;
-      width: 35px;
-      height: 35px;
-      border-radius: 10px;
       color: white;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 16px;
       transition: 0.2s;
+      z-index: 10;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .btn-add-row { background: var(--accent-blue); }
-    .btn-del-row { background: var(--accent-red); }
-    .btn-action:hover { opacity: 0.8; transform: scale(1.05); }
+    .btn-action-overlay:hover { opacity: 1; transform: scale(1.1) translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+    .btn-action-overlay:active { transform: scale(0.95) translateY(0); box-shadow: none; }
+
+    /* ＋ 按鈕：疊加在姓名輸入框左下角 */
+    .btn-add-row { 
+      background: var(--btn-overlay-blue);
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7ab8f0; /* 調整＋的顏色 */
+    }
+    .input-wrapper-name input {
+      padding-left: 50px; /* 為按鈕留出空間 */
+    }
+
+    /* － 按鈕：疊加在品名輸入框右下角 */
+    .btn-del-row { 
+      background: var(--btn-overlay-red);
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #f7a09c; /* 調整－的顏色 */
+    }
+    .input-wrapper-item input {
+      padding-right: 50px; /* 為按鈕留出空間 */
+    }
 
     .btn-submit { 
       background: var(--primary-purple); 
@@ -107,11 +144,14 @@
       cursor: pointer; 
       margin-top: 20px;
       box-shadow: 0 8px 20px rgba(157, 133, 225, 0.3);
+      transition: 0.2s;
     }
+    .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
+    .btn-submit:active { transform: translateY(1px); box-shadow: none; }
 
     /* Lightbox */
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; cursor: zoom-out; }
-    #overlay img { max-width: 95%; max-height: 95%; }
+    #overlay img { max-width: 95%; max-height: 95%; border-radius: 10px; }
     #close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; }
   </style>
 </head>
@@ -195,24 +235,28 @@
     const div = document.createElement('div');
     div.className = 'order-row';
     div.innerHTML = `
-      <button class="btn-action btn-add-row" onclick="addRow()"><i class="fa-solid fa-plus"></i></button>
-      <input type="text" class="name-input" placeholder="姓名" value="${name}">
-      <input type="text" class="item-input" placeholder="品名" value="${item}">
-      <button class="btn-action btn-del-row" onclick="removeRow(this)"><i class="fa-solid fa-minus"></i></button>
+      <div class="input-wrapper input-wrapper-name">
+        <button class="btn-action-overlay btn-add-row" onclick="addRow()" title="新增一行"><i class="fa-solid fa-plus"></i></button>
+        <input type="text" class="name-input" placeholder="姓名" value="${name}">
+      </div>
+      <div class="input-wrapper input-wrapper-item">
+        <input type="text" class="item-input" placeholder="品名" value="${item}">
+        <button class="btn-action-overlay btn-del-row" onclick="removeRow(this)" title="刪除此行"><i class="fa-solid fa-minus"></i></button>
+      </div>
     `;
     list.appendChild(div);
   }
 
   function removeRow(btn) {
-    const row = btn.parentNode;
-    const name = row.querySelector('.name-input').value;
-    const item = row.querySelector('.item-input').value;
+    const row = btn.closest('.order-row');
+    const name = row.querySelector('.name-input').value.trim();
+    const item = row.querySelector('.item-input').value.trim();
     
     // 如果是空欄位直接刪除，如果有內容則跳出確認
     if (!name && !item) {
       row.remove();
     } else {
-      if (confirm("確定要刪除這筆資料嗎？")) row.remove();
+      if (confirm(`確定要刪除這筆資料嗎？\n姓名: ${name}\n品名: ${item}`)) row.remove();
     }
   }
 
